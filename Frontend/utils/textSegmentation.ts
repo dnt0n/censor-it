@@ -1,20 +1,17 @@
 import { Entity, Segment } from '../types';
 
-function escapeRegExp(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 type Match = {
-  start: number;
-  end: number;
-  entity_group: string;
-  text: string; // matched text, original casing
+start: number;
+end: number;
+entity_group: string;
+text: string; // matched text, original casing
 };
 
 /**
- * Build non-overlapping segments from text + entity words.
- * Matches are case-insensitive, whole-word, and prefer earlier spans when overlaps occur.
- */
+* Build non-overlapping segments from text + entity words.
+* Matches are case-insensitive, ignores punctuation differences,
+* prefers earlier spans when overlaps occur.
+*/
 export function buildSegments(
   text: string,
   entities: Entity[]
@@ -23,8 +20,14 @@ export function buildSegments(
 
   for (const e of entities) {
     if (!e.word?.trim()) continue;
-    // Whole-word, case-insensitive; supports multi-word (e.g., "block 110")
-    const re = new RegExp(`\\b${escapeRegExp(e.word)}\\b`, 'gi');
+
+    // Remove punctuation from entity word and trim
+    const cleanWord = e.word.replace(/[^\w\s]/g, '').trim();
+    if (!cleanWord) continue;
+
+    // Match in the text ignoring case, allow flexible whitespace
+    const re = new RegExp(cleanWord.replace(/\s+/g, '\\s+'), 'gi');
+
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
       matches.push({
@@ -33,14 +36,15 @@ export function buildSegments(
         entity_group: e.entity_group,
         text: m[0],
       });
-      // Guard against zero-length matches (shouldn't happen with \b... but be safe)
+      // Guard against zero-length matches
       if (m.index === re.lastIndex) re.lastIndex++;
     }
   }
 
-  matches.sort((a, b) => a.start - b.start || b.end - a.end); // earlier first, longer first on tie
+  // Sort: earlier start first, longer match first if tie
+  matches.sort((a, b) => a.start - b.start || b.end - a.end);
 
-  // Remove overlaps by keeping the first span that starts earliest
+  // Remove overlaps: keep earliest match
   const kept: Match[] = [];
   let cursor = 0;
   for (const m of matches) {
@@ -50,6 +54,7 @@ export function buildSegments(
     }
   }
 
+  // Build final segments
   const segments: Segment[] = [];
   let pos = 0;
   let idx = 0;
