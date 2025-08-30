@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "censorit",
+    "scheme": "censor-it",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -15,9 +15,6 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "android": {
-        "package": "com.yourco.yourapp"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.dant0n.censorit"

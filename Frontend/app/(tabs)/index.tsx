@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import 'react-native-gesture-handler';
 
 import CensorableText from '../../components/CensorableText';
 import { DetectionResult, Segment } from '../../types';
