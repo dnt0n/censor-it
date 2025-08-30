@@ -31,23 +31,45 @@ export default function App() {
     return computeCensoredText(segments, censoredMap);
   }, [segments, censoredMap]);
 
-  const onDetect = async () => {
-    setError(null);
-    setLoading(true);
-    setSegments(null);
-    setCensoredMap({});
-    try {
-      const jsonStr = await process_input(input); // <-- required call
-      const parsed: DetectionResult = JSON.parse(jsonStr);
+ const onDetect = async () => {
+   setError(null);
+   setLoading(true);
+   setSegments(null);
+   setCensoredMap({});
 
-      const segs = buildSegments(input, parsed.entities || []);
-      setSegments(segs);
-    } catch (e: any) {
-      setError(`Failed to process input: ${e?.message ?? String(e)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+   try {
+     console.log("Sending input to process_input:", input);
+
+     // Call your updated process_input which should hit the AI API
+     const jsonStr = await process_input(input);
+
+     console.log("Raw response string:", jsonStr);
+
+     // Parse the JSON string returned
+     const parsed: DetectionResult = JSON.parse(jsonStr);
+
+     console.log("Parsed response:", parsed);
+
+     if (!parsed.entities || !parsed.entities.length) {
+       console.warn("No entities detected");
+     }
+
+     // Build segments using the returned entities
+     const segs = buildSegments(input, parsed.entities || []);
+     setSegments(segs);
+
+     console.log("Segments built:", segs);
+   } catch (e: any) {
+     setError(`Failed to process input: ${e?.message ?? String(e)}`);
+     console.error("Error in onDetect:", e);
+   } finally {
+     setLoading(false);
+   }
+ };
+
+
+
+
 
   const onToggle = (segmentKey: string) => {
     setCensoredMap((prev) => ({ ...prev, [segmentKey]: !prev[segmentKey] }));
