@@ -9,14 +9,18 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet":true
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "android": {
+        "package": "com.yourco.yourapp"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.dant0n.censorit"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +41,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4cbf6cfb-e576-48e0-9069-483b9906cbd0"
+      }
     }
   }
 }
