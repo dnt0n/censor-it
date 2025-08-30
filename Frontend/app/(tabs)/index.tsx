@@ -1,16 +1,16 @@
 import * as Clipboard from 'expo-clipboard';
 import { useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 import CensorableText from '../../components/CensorableText';
@@ -81,6 +81,38 @@ export default function App() {
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
+
+  const isCensorable = (s: Segment) => {
+    const any = s as any;
+    // Prefer explicit flags if your buildSegments sets them;
+    // otherwise fall back to common shapes for entity segments.
+    if (typeof any.censorable === 'boolean') return any.censorable;
+    return (
+      any.type === 'entity' ||
+      !!any.entity ||
+      typeof any.tag === 'string' ||
+      any.isEntity === true
+    );
+  };
+  
+// Treat any non-plain segment as censorable (fallback to entity_group presence)
+const isEntity = (s: Segment) =>
+  (s as any).kind ? (s as any).kind !== 'plain' : !!(s as any).entity_group;
+
+const onCensorAll = () => {
+  if (!segments) return;
+  // Build a fresh map with TRUE for every entity key
+  const next: Record<string, boolean> = {};
+  for (const s of segments) {
+    if (isEntity(s)) next[s.key] = true; // true => censored
+  }
+  setCensoredMap(next);
+};
+
+  const onUncensorAll = () => {
+    setCensoredMap({});
+  };
+
 
   const copyDisabled = !input?.length;
 
@@ -154,6 +186,35 @@ export default function App() {
                   </Text>
                 )}
               </View>
+
+              <View style={styles.actionRow}>
+                <Pressable
+                  onPress={onCensorAll}
+                  disabled={!segments}
+                  android_ripple={{ color: '#DBEAFE' }}
+                  style={({ pressed }) => [
+                    styles.smallButton,
+                    (!segments) && styles.buttonDisabled,
+                    pressed && styles.buttonPressed,
+                  ]}
+                >
+                  <Text style={styles.smallButtonText}>Censor all</Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={onUncensorAll}
+                  disabled={!segments}
+                  android_ripple={{ color: '#F1F5F9' }}
+                  style={({ pressed }) => [
+                    styles.smallButtonAlt,
+                    (!segments) && styles.buttonDisabled,
+                    pressed && styles.buttonPressed,
+                  ]}
+                >
+                  <Text style={styles.smallButtonText}>Uncensor all</Text>
+                </Pressable>
+              </View>
+
 
               <View style={styles.resultBox}>
                 <Text style={styles.resultLabel}>Copy-ready Text</Text>
@@ -309,4 +370,28 @@ const styles = StyleSheet.create({
   },
   resultLabel: { color: '#0F172A', fontWeight: '700', marginBottom: 6 },
   resultText: { color: '#111827', fontSize: 16, lineHeight: 24 },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 50,
+    marginTop: 10,
+  },
+  smallButton: {
+    marginRight: 10,
+    backgroundColor: '#0EA5E9', // cyan
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  smallButtonAlt: {
+    backgroundColor: '#475569', // slate
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  smallButtonText: { color: '#FFFFFF', fontWeight: '700' },
+
 });
